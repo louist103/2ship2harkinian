@@ -73,17 +73,17 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 ################################################################################
 # Set target arch type if empty. Visual studio solution generator provides it.
 ################################################################################
-if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    if(NOT CMAKE_VS_PLATFORM_NAME)
-        set(CMAKE_VS_PLATFORM_NAME "x64")
-    endif()
-    message("${CMAKE_VS_PLATFORM_NAME} architecture in use")
-
-    if(NOT ("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64"
-        OR "${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32"))
-        message(FATAL_ERROR "${CMAKE_VS_PLATFORM_NAME} arch is not supported!")
-    endif()
-endif()
+#if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+#    if(NOT CMAKE_VS_PLATFORM_NAME)
+#        set(CMAKE_VS_PLATFORM_NAME "x64")
+#    endif()
+#    message("${CMAKE_VS_PLATFORM_NAME} architecture in use")
+#
+#    if(NOT ("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64"
+#        OR "${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32"))
+#        message(FATAL_ERROR "${CMAKE_VS_PLATFORM_NAME} arch is not supported!")
+#    endif()
+#endif()
 
 ################################################################################
 # VCPKG dependencies for Windows
@@ -97,6 +97,9 @@ if ("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "Win32")
 elseif ("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "x64")
 	set(VCPKG_TRIPLET x64-windows-static)
 	set(VCPKG_TARGET_TRIPLET x64-windows-static)
+elseif ("${CMAKE_VS_PLATFORM_NAME}" STREQUAL "arm64")
+    set(VCPKG_TRIPLET arm64-windows-static)
+    set(VCPKG_TARGET_TRIPLET arm64-windows-static)
 endif()
 
 vcpkg_bootstrap()

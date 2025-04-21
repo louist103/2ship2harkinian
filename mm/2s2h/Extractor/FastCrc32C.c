@@ -14,7 +14,7 @@
 
 // Include headers for the CRC32 intrinsic and cpuid instruction on windows. No need to do any other checks because it
 // assumes the target will support CRC32
-#ifdef _WIN32
+#if defined(_WIN32) && (defined(__x86_64__))
 #include <immintrin.h>
 #include <intrin.h>
 // Same as above but these platforms use slightly different headers
