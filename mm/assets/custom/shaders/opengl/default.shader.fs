@@ -1,54 +1,51 @@
 @prism(type='fragment', name='Fast3D Fragment Shader', version='1.0.0', description='Ported shader to prism', author='Emill & Prism Team')
 
-@{GLSL_VERSION}
+#version 450 core
 
-@if(core_opengl || opengles)
-out vec4 vOutColor;
-@end
+@if(o_textures[0]) layout(binding = @{get_binding_index()}) uniform sampler2D uTex0;
+@if(o_textures[1]) layout(binding = @{get_binding_index()}) uniform sampler2D uTex1;
+
+@if(o_masks[0]) layout(binding = @{get_binding_index()}) uniform sampler2D uTexMask0;
+@if(o_masks[1]) layout(binding = @{get_binding_index()}) uniform sampler2D uTexMask1;
+
+@if(o_blend[0]) layout(binding = @{get_binding_index()}) uniform sampler2D uTexBlend0;
+@if(o_blend[1]) layout(binding = @{get_binding_index()}) uniform sampler2D uTexBlend1;
+
+layout(std140, binding = @{get_binding_index()}) uniform FrameCount {
+    int frame_count;
+};
+layout(std140, binding = @{get_binding_index()}) uniform NoiseScale {
+    float noise_scale;
+};
 
 @for(i in 0..2)
     @if(o_textures[i])
-        @{attr} vec2 vTexCoord@{i};
+        layout(location = @{get_input_location()}) in vec2 vTexCoord@{i};
         @for(j in 0..2)
             @if(o_clamp[i][j])
                 @if(j == 0)
-                    @{attr} float vTexClampS@{i};
+                    layout(location = @{get_input_location()}) in float vTexClampS@{i};
                 @else
-                    @{attr} float vTexClampT@{i};
+                    layout(location = @{get_input_location()}) in float vTexClampT@{i};
                 @end
             @end
         @end
     @end
 @end
 
-@if(o_fog) @{attr} vec4 vFog;
-@if(o_grayscale) @{attr} vec4 vGrayscaleColor;
+@if(o_fog) layout(location = @{get_input_location()}) in vec4 vFog;
+@if(o_grayscale) layout(location = @{get_input_location()}) in vec4 vGrayscaleColor;
 
 @for(i in 0..o_inputs)
     @if(o_alpha)
-        @{attr} vec4 vInput@{i + 1};
+        layout(location = @{get_input_location()}) in vec4 vInput@{i + 1};
     @else
-        @{attr} vec3 vInput@{i + 1};
+        layout(location = @{get_input_location()}) in vec3 vInput@{i + 1};
     @end
 @end
 
-@if(o_textures[0]) uniform sampler2D uTex0;
-@if(o_textures[1]) uniform sampler2D uTex1;
 
-@if(o_masks[0]) uniform sampler2D uTexMask0;
-@if(o_masks[1]) uniform sampler2D uTexMask1;
-
-@if(o_blend[0]) uniform sampler2D uTexBlend0;
-@if(o_blend[1]) uniform sampler2D uTexBlend1;
-
-uniform int frame_count;
-uniform float noise_scale;
-
-uniform int texture_width[2];
-uniform int texture_height[2];
-uniform int texture_filtering[2];
-
-#define TEX_OFFSET(off) @{texture}(tex, texCoord - off / texSize)
+#define TEX_OFFSET(off) texture(tex, texCoord - off / texSize)
 #define WRAP(x, low, high) mod((x)-(low), (high)-(low)) + (low)
 
 float random(in vec3 value) {
@@ -74,14 +71,15 @@ vec4 filter3point(in sampler2D tex, in vec2 texCoord, in vec2 texSize) {
 
 vec4 hookTexture2D(in int id, sampler2D tex, in vec2 uv, in vec2 texSize) {
 @if(o_three_point_filtering)
-    if(texture_filtering[id] == @{FILTER_THREE_POINT}) {
-        return filter3point(tex, uv, texSize);
-    }
+    // ignore the texture filtering setting for now
+    // if(texture_filtering[id] == @{FILTER_THREE_POINT}) {
+    //     return filter3point(tex, uv, texSize);
+    // }
 @end
-    return @{texture}(tex, uv);
+    return texture(tex, uv);
 }
 
-#define TEX_SIZE(tex) vec2(texture_width[tex], texture_height[tex])
+layout(location = 0) out vec4 fragColor;
 
 void main() {
     @for(i in 0..2)
@@ -89,7 +87,7 @@ void main() {
             @{s = o_clamp[i][0]}
             @{t = o_clamp[i][1]}
 
-            vec2 texSize@{i} = TEX_SIZE(@{i});
+            vec2 texSize@{i} = textureSize(uTex@{i}, 0);
 
             @if(!s && !t)
                 vec2 vTexCoordAdj@{i} = vTexCoord@{i};
@@ -106,11 +104,7 @@ void main() {
             vec4 texVal@{i} = hookTexture2D(@{i}, uTex@{i}, vTexCoordAdj@{i}, texSize@{i});
 
             @if(o_masks[i])
-                @if(opengles) 
-                    vec2 maskSize@{i} = vec2(textureSize(uTexMask@{i}, 0));
-                @else 
-                    vec2 maskSize@{i} = textureSize(uTexMask@{i}, 0);
-                @end
+                vec2 maskSize@{i} = textureSize(uTexMask@{i}, 0);
 
                 vec4 maskVal@{i} = hookTexture2D(@{i}, uTexMask@{i}, vTexCoordAdj@{i}, maskSize@{i});
 
@@ -200,12 +194,12 @@ void main() {
         @if(o_invisible)
             texel.a = 0.0;
         @end
-        @{vOutColor} = texel;
+        fragColor= texel;
     @else
-        @{vOutColor} = vec4(texel, 1.0);
+        fragColor = vec4(texel, 1.0);
     @end
 
     @if(srgb_mode)
-        @{vOutColor} = fromLinear(@{vOutColor});
+        fragColor = fromLinear(fragColor);
     @end
 }

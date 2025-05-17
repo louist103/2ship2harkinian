@@ -347,6 +347,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU|Clang|AppleClang")
 		"_UNICODE"
         "NON_MATCHING;"
         "NON_EQUIVALENT;"
+        "LLGL_BUILD_RENDERER_VULKAN"
 	)
 endif()
 ################################################################################
