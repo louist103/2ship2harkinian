@@ -1676,6 +1676,7 @@ void BenMenu::InitElement() {
                return !Ship::Context::GetInstance()->GetWindow()->GetGui()->SupportsViewports();
            },
             "Multi-viewports not supported" } },
+#if 0
         { DISABLE_FOR_NOT_DIRECTX,
           { [](disabledInfo& info) -> bool {
                return Ship::Context::GetInstance()->GetWindow()->GetWindowBackend() !=
@@ -1688,6 +1689,7 @@ void BenMenu::InitElement() {
                       Ship::WindowBackend::FAST3D_DXGI_DX11;
            },
             "Not Available on DirectX" } },
+#endif
         { DISABLE_FOR_MATCH_REFRESH_RATE_ON,
           { [](disabledInfo& info) -> bool { return CVarGetInteger("gMatchRefreshRate", 0); },
             "Match Refresh Rate is Enabled" } },

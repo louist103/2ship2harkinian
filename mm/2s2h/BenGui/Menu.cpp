@@ -91,15 +91,15 @@ void Menu::RemoveSidebarSearch() {
 }
 
 void Menu::UpdateWindowBackendObjects() {
-    Ship::WindowBackend runningWindowBackend = Ship::Context::GetInstance()->GetWindow()->GetWindowBackend();
-    int32_t configWindowBackendId = Ship::Context::GetInstance()->GetConfig()->GetInt("Window.Backend.Id", -1);
-    if (Ship::Context::GetInstance()->GetWindow()->IsAvailableWindowBackend(configWindowBackendId)) {
-        configWindowBackend = static_cast<Ship::WindowBackend>(configWindowBackendId);
+    int runningWindowBackend = Ship::Context::GetInstance()->GetWindow()->GetRendererID();
+    int configWindowBackendId = Ship::Context::GetInstance()->GetConfig()->GetInt("Window.Backend.Id", -1);
+    if (Ship::Context::GetInstance()->GetWindow()->IsAvailableRenderer(configWindowBackendId)) {
+        configWindowBackend = configWindowBackendId;
     } else {
         configWindowBackend = runningWindowBackend;
     }
 
-    availableWindowBackends = Ship::Context::GetInstance()->GetWindow()->GetAvailableWindowBackends();
+    availableWindowBackends = Ship::Context::GetInstance()->GetWindow()->GetAvailableRenderers();
     for (auto& backend : *availableWindowBackends) {
         availableWindowBackendsMap[backend] = windowBackendsMap.at(backend);
     }
@@ -108,6 +108,13 @@ void Menu::UpdateWindowBackendObjects() {
 Menu::Menu(const std::string& cVar, const std::string& name, uint8_t searchSidebarIndex_,
            UIWidgets::Colors defaultThemeIndex_)
     : GuiWindow(cVar, name), searchSidebarIndex(searchSidebarIndex_), defaultThemeIndex(defaultThemeIndex_) {
+    windowBackendsMap = {
+        {LLGL::RendererID::Direct3D11, "DX11"},
+        {LLGL::RendererID::Direct3D12, "DX12"},
+        {LLGL::RendererID::OpenGL, "OpenGL"},
+        {LLGL::RendererID::Vulkan, "Vulkan"},
+        {LLGL::RendererID::Metal, "Metal"},
+    };
 }
 
 void Menu::InitElement() {
@@ -295,7 +302,8 @@ void Menu::MenuDrawItem(WidgetInfo& widget, uint32_t width, UIWidgets::Colors me
                     Ship::Context::GetInstance()->GetConfig()->Save();
                     UpdateWindowBackendObjects();
                 }
-            } break;
+            }
+            break;
             case WIDGET_SEPARATOR: {
                 ImGui::Separator();
             } break;
